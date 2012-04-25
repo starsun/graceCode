@@ -4,6 +4,7 @@
  */
 
 var fs = require('fs')
+,	path = require('path')
 ,	step = require('./lib/step')
 ,	output = require('./output')
 ;
@@ -17,7 +18,7 @@ exports.merge = function(iPathList, oPath) {
 	
     step.Step(
 		function readFiles(){
-	        var group = this.group();
+			var group = this.group();
 	        iPathList.forEach(function(iPath){
 				console.log('=====merged: ' + iPath);
                 fs.readFile(iPath, group());
@@ -28,7 +29,7 @@ exports.merge = function(iPathList, oPath) {
 	        if (err) throw err;
 			var oCode = files.join('')
 			,	fd = fs.openSync(oPath, 'w', '0666')
-			,	fileName = oPath.split('/').pop()
+			,	fileName = path.basename(oPath) // oPath.split('/').pop()
 			,	outStr = ''
 			;
 			

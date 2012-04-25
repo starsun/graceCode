@@ -3,11 +3,11 @@
  * compress a file or files in a dir or files in a list
  */
 var fs = require('fs')
+,	path = require('path')
 ,	uglify = require("./uglify")
 ,	step = require('./lib/step')
 ,	iconv = require('./lib/iconv')
-,	path = require('path')
-,	config = require("./../config")
+,	config = require('./../config')
 ,	cssmin = require('./lib/cssmin')
 ,	output = require('./output')
 ;
@@ -28,7 +28,6 @@ exports.compress = function(iPathObj, oPath, scharset, isStrict, isMangle, callb
 	,	charset = iPathObj.charset
 	,	iPath = iPathObj.url
 	;
-	
 	try {
 		
 		if (charset == scharset) {
@@ -60,18 +59,20 @@ exports.compress = function(iPathObj, oPath, scharset, isStrict, isMangle, callb
 exports.compressFiles = function(iPathList, sourceName, isStrict, callback){
 	var self = this
 	,	charset = config.configJS.charset
-	,	oDir =  config.configJS.tmpDir
+	,	oDir =  path.join(config.config.tmpDir, 'local')
 	,	oPath
 	;
 
     step.Step(
-		function readFiles(){
+    		
+		function mkDirAndReadFiles(exists){
 	        var group = this.group()
 			,	oPath	
 			;
+
 	        iPathList.forEach(function(iPathObj){
 	            if (iPathObj.url.indexOf('.js') > -1) {
-					oPath = oDir + "/" + path.basename(iPathObj.url).replace('.js', '-min.js');
+					oPath = path.join(oDir, path.basename(iPathObj.url).replace('.js', '-min.js'));
 	                self.compress(iPathObj, oPath, charset, isStrict, true,group());
 	            }
 	        });
@@ -117,8 +118,8 @@ exports.compressDir = function(iDir, oDir, charset, isStrict, callback){
 			
 		    files.forEach(function(filename){
 		        if (/\.js$/.test(filename)) {
-					iPath = iDir + "/" + filename;
-					oPath = oDir + "/" + filename.replace('.js', '-min.js');	
+					iPath = path.join(iDir, filename);
+					oPath = path.join(oDir, filename.replace('.js', '-min.js'));	
 					self.compress(iPath, oPath, charset, isStrict, group());
 		        }
 		    });
@@ -155,12 +156,13 @@ exports.compressCSS = function(iPath, oPath, charset, callback) {
 	}	
 };
 
-exports.compressCSSFiles = function(iPathList, callback) {
+exports.compressCSSFiles = function(iPathList, oDir, callback) {
 	var self = this
 	,	charset = config.configCSS.charset
-	,	oDir =  config.configCSS.tmpDir
 	,	oPath
 	;	
+	
+	
 	
     step.Step(
 		function readFiles(){
@@ -169,7 +171,7 @@ exports.compressCSSFiles = function(iPathList, callback) {
 			;
 	        iPathList.forEach(function(iPath){
 	            if (iPath.indexOf('.css') > -1) {
-					oPath = oDir + "/" + path.basename(iPath).replace('.css', '-min.css');
+					oPath = path.join(oDir, path.basename(iPath).replace('.css', '-min.css'));
 	                self.compressCSS(iPath, oPath, charset, group());
 	            }
 	        });

@@ -5,6 +5,7 @@
  */
 
 var fs = require('fs')
+,	path = require('path')
 ,	compress = require("./compile/compress")
 ,	step = require('./compile/lib/step')
 ,	config = require("./config")
@@ -12,11 +13,11 @@ var fs = require('fs')
 
 exports.getJSListObj = function(iPath){
 
-	var fileName = iPath.split('/').pop()
+	var fileName = path.basename(iPath)
 	,	reg = config.configJS.jsReg
-	,	oDir = config.configJS.tmpDir
+	,	oDir = config.config.tmpDir
 	,	jsBaseDir = config.configJS.jsBaseDir
-	,	oPath = oDir + '/' + fileName
+	,	oPath = path.join(oDir, fileName)
 	,	iCode = ''
 	,	list = []
 	,	remoteList = []
@@ -31,13 +32,21 @@ exports.getJSListObj = function(iPath){
 	,	charset = config.configJS.charset
 	,	iPathObj = {'url':iPath, 'charset': charset}
 	;
-	
-	
 	step.Step(
-		function compressFile(){
-			var sourceName = iPathObj.url.split('/').pop();
+			
+		function mkTmpDirAndCompressFile() {
+			
+			if (!path.existsSync(oDir)) {
+				
+				fs.mkdirSync(oDir, 0755);
+				
+			}
+			
+			var sourceName = path.basename(iPathObj.url);
 			compress.compress(iPathObj, oPath, charset, false, false, this);
-		},
+
+		},			
+
 		function parseFile(oPath){
 
 			iCode = fs.readFileSync(oPath, charset);
@@ -59,7 +68,7 @@ exports.getJSListObj = function(iPath){
 				if(tmpList[0].indexOf('http') === 0) {
 					remoteList.push(tmpObj);
 				} else {
-					tmpObj.url = jsBaseDir + '/' + tmpObj.url;
+					tmpObj.url = path.join(jsBaseDir, tmpObj.url);
 					localList.push(tmpObj);
 				}
 			}
@@ -83,10 +92,10 @@ exports.getJSListObj = function(iPath){
 
 exports.getCSSListObj = function(){
 	var iPath = config.configCSS.sPath
-	,	fileName = iPath.split('/').pop()
+	,	fileName = path.basename(iPath) //.split('/').pop()
 	,	reg = config.configCSS.cssReg
 	,	charset = config.configCSS.charset
-	,	oDir = config.configCSS.tmpDir
+	,	oDir = config.config.tmpDir
 	,	cssBaseDir = config.configCSS.cssBaseDir
 	,	iCode = ''
 	,	list = []
@@ -110,9 +119,9 @@ exports.getCSSListObj = function(){
 			
 	for(i = 0; i < leng; i++) {
 		tmpStr = list[i].substring(index, list[i].length-2).replace(/['"]/g, '');
-		tmpStr = cssBaseDir + '/' + tmpStr;
+		tmpStr = path.join(cssBaseDir, tmpStr);
 		localList.push(tmpStr);
 	}
-			
+
 	return 	localList;
 };

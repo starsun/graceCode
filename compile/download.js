@@ -26,7 +26,7 @@ exports.download = function(urlObj, dir, scharset, callback){
 			port: 80,
 			path: url.parse(durl).pathname
 		}
-	,	fileName = url.parse(durl).pathname.split('/').pop()
+	,	fileName = path.basename(durl) //url.parse(durl).pathname.split('/').pop()
 	,	file = fs.createWriteStream(path.join(dir,fileName))
 	;
 
@@ -58,18 +58,22 @@ exports.downloadFiles = function(durlList, sourceName, callback) {
 	var i
 	,	leng = durlList.length
 	,	self = this
-	,	dir = config.configJS.tmpDir
+	,	dir = path.join(config.config.tmpDir, 'download')
 	,	charset = config.configJS.charset
 	;
 	
 	step.Step(
-		function downAll(){
+			
+		function mkDirAndDownAll() {
 			var group = this.group();
-			durlList.forEach(function (durl) {
+
+			durlList.forEach(function(durl){
 				if (durl.url.indexOf('.js') > -1) {
+				
 					self.download(durl, dir, charset, group());
 				}
-			});		
+			});
+	
 		},
 		
 		function cb(dir) {

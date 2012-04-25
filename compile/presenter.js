@@ -4,32 +4,37 @@
  * second:  merge files in output directory to a file
  */
 
-var download = require("./download")
+var fs = require('fs')
+,	path = require('path')
+,	url = require('url')
+,	download = require("./download")
 ,	compress = require("./compress")
 ,	merge = require("./merge")
 ,	step = require('./lib/step')
-,	url = require('url')
-,	path = require('path')
 ,	config = require("./../config")
 ;
+
 
 function getMergeList(durlList, iPathList, dir, sourceFile) {
 	var mergeList = []
 	,	fileName
 	,	filePath
+	,	downloadDir
+	,	localDir
 	;
 	
 	durlList.forEach(function (durl) {
 		if (/\.js$/.test(durl.url)) {
-			fileName = url.parse(durl.url).pathname.split('/').pop();
-			filePath = dir + "/" + fileName;
+			fileName = path.basename(durl.url); //url.parse(durl.url).pathname.split('/').pop();
+			filePath = path.join(dir, 'download', fileName);
 			mergeList.push(filePath);
 		}
 	});
 
 	iPathList.forEach(function (iPath) {
 		if (/\.js$/.test(iPath.url)) {
-			filePath = dir + "/" + path.basename(iPath.url).replace('.js', '-min.js');
+			fileName = path.basename(iPath.url).replace('.js', '-min.js');
+			filePath = path.join(dir, 'local', fileName);
 			mergeList.push(filePath);
 		}
 	});		
@@ -38,6 +43,8 @@ function getMergeList(durlList, iPathList, dir, sourceFile) {
 		mergeList.push(sourceFile.url);
 	}
 	return mergeList;
+
+
 }
 
 exports.presenterJS = function(fileObj, isStrict) {
@@ -45,29 +52,32 @@ exports.presenterJS = function(fileObj, isStrict) {
 	var durlList = fileObj.remoteList
 	,	iPathList = fileObj.localList
 	,	sourceFile = fileObj.sourceFile
-	,	sourceName = sourceFile.url.split('/').pop()
+	,	sourceName = path.basename(sourceFile.url)
 	,	mergeList = []
-	,	dir = config.configJS.tmpDir
+	,	tmpDir = config.config.tmpDir
 	,	oPath
 	;
-	mergeList = getMergeList(durlList, iPathList, dir, sourceFile);
-	oPath = config.configJS.oDir + '/' + sourceName.replace('.js','-min.js');
+				
+	mergeList = getMergeList(durlList, iPathList, tmpDir, sourceFile);
+	oPath = path.join(config.configJS.oDir, sourceName.replace('.js','-min.js'));
+
+	step.Step(
 	
-		step.Step(
-			function downloadAndCompress(){
-				download.downloadFiles(durlList, sourceName, this.parallel());
-				compress.compressFiles(iPathList, sourceName, isStrict, this.parallel());	
-			},
-			
-			function mergeFiles(dir){
-				merge.merge(mergeList, oPath);	
-			}
-		);
+		function downloadAndCompress(){
+			download.downloadFiles(durlList, sourceName, this.parallel());
+			compress.compressFiles(iPathList, sourceName, isStrict, this.parallel());	
+		},
+
+		function mergeFiles(dir){
+//				console.log(oPath);
+			merge.merge(mergeList, oPath);	
+		}
+	);
 };
 
 exports.presenterCSS = function(iPathList, isStrict) {
 
-	var tmpDir = config.configCSS.tmpDir
+	var tmpDir = path.join(config.config.tmpDir, 'css')
 	,	oPath
 	,	mergeList = []
 	;
@@ -76,14 +86,14 @@ exports.presenterCSS = function(iPathList, isStrict) {
 	
 	step.Step(
 		function downloadAndCompress(){
-			compress.compressCSSFiles(iPathList, this);	
+			compress.compressCSSFiles(iPathList, tmpDir, this);	
 		},
 		
 		function mergeFiles(dir){
 			
 			iPathList.forEach(function (iPath) {
 				if (/\.css$/.test(iPath)) {
-					filePath = tmpDir + "/" + path.basename(iPath).replace('.css', '-min.css');
+					filePath = path.join(tmpDir, path.basename(iPath).replace('.css', '-min.css'));
 					mergeList.push(filePath);
 					
 				}
