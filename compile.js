@@ -1,6 +1,11 @@
 /**
  * @author shandan.com@gmail.com
  * 执行入口 main
+ * 执行方式
+ * node compile.js 
+ * node compile.js -t 1
+ * node compile.js -t js
+ * node compile.js -t JS
  * 
  */
 var presenter = require("./compile/presenter")
@@ -90,8 +95,8 @@ function mkTmpDir(dir) {
 	
 }
 
-function main(){
-	console.log('\nYour platform is ' + process.platform);
+function consoleProcess(){
+	
 	console.log('\n请输入数字选择要合并的文件类型\n');
 	console.log('1.JS 2.CSS');
 	process.stdin.resume();
@@ -113,8 +118,30 @@ function main(){
 		process.stdin.pause();
 		return;
 	
-	});
+	});	
 	
+}
+
+function main(){
+	console.log('\nYour platform is ' + process.platform);
+	
+	var staticType
+	,	index = process.argv.indexOf('-t')
+	;
+	if (index != -1 && process.argv[index + 1]) {
+		staticType = process.argv[index + 1].toUpperCase();
+		
+		if (staticType === '1' || staticType === 'JS') {
+			compileJSFiles();
+		} else if (staticType === '2' || staticType === 'CSS') {
+			compileCSSFiles();
+		} else {
+			console.log('\n 输入的-t参数类型不存在\n');
+			consoleProcess();
+		}
+	} else {
+		consoleProcess();
+	}	
 }
 
 main();
