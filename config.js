@@ -15,9 +15,8 @@ exports.config = {
 }
 
 exports.configCSS = {
-	cssReg: /@import url\(([a-zA-Z_\-0-9\/]*)\.css\);/g,
+	cssReg: /@import url\((.+\.css)\);/g,
 	charset:'utf8',//源文件编码，也作为目标文件的编码
-	cssBaseDir:'D:/wwwroot/workspace/20120413_128291_txp-3.5_1/css',
 	sPath:'D:/wwwroot/workspace/20120413_128291_txp-3.5_1/css/alp.css',//源文件路径 
 	oPath:'D:/wwwroot/workspace/20120413_128291_txp-3.5_1/alp-min.css' //,//目标文件路径 
 };
