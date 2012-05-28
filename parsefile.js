@@ -92,35 +92,20 @@ exports.getJSListObj = function(iPath){
 
 exports.getCSSListObj = function(){
 	var iPath = config.configCSS.sPath
-	,	fileName = path.basename(iPath) //.split('/').pop()
 	,	reg = config.configCSS.cssReg
 	,	charset = config.configCSS.charset
-	,	oDir = config.config.tmpDir
-	,	cssBaseDir = config.configCSS.cssBaseDir
+	,	cssBaseDir = path.dirname(iPath)
 	,	iCode = ''
 	,	list = []
-	,	leng = 0
-	,	index = 0
-	,	i = 0
 	,	tmpStr = ''
-	,	remoteList = []
 	,	localList = []
-	,	listObj = {}
 	;
 	
 
 	iCode = fs.readFileSync(iPath, charset);
-	list = iCode.match(reg);
-	leng = (list ? list.length:0);
-
-	if(leng > 0) {
-		index = list[0].indexOf('(')+1;
-	}
-			
-	for(i = 0; i < leng; i++) {
-		tmpStr = list[i].substring(index, list[i].length-2).replace(/['"]/g, '');
-		tmpStr = path.join(cssBaseDir, tmpStr);
-		localList.push(tmpStr);
+	while((list = reg.exec(iCode)) != null){
+		tmpStr = list[1].replace(/['"]/g, '');
+		localList.push(path.join(cssBaseDir, tmpStr));
 	}
 
 	return 	localList;
